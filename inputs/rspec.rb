@@ -1,11 +1,11 @@
 module Testpilot::CxxTest
   
   Testpilot.add_property :extensions do 
-    [".c", ".cpp", ".h"]
+    [".rb"]
   end
 
   Testpilot.add_property :exclude do 
-    ["runner.cpp"]
+    []
   end
   
   Testpilot.add_property :passed do |exitcode, stdout, stderr|
@@ -17,13 +17,11 @@ module Testpilot::CxxTest
   end
   
   Testpilot.add_property :fail_message do |stdout, stderr|
-    stdout
+    stdout.grep(/failure/).to_s
   end
 
   Testpilot.add_property :command do
-    ["cxxtestgen --error-printer -o runner.cpp #{$testsuite}",
-     "g++ -o runner runner.cpp",
-     "./runner"]
+    ["spec #{$testsuite}"]
   end
 
 end

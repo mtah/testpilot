@@ -1,0 +1,58 @@
+README
+=======
+
+Introduction
+-------------
+testpilot is a simple and modular tool for accelerating Test-driven 
+Development. It is highly modular, consisting of a input modules, output 
+modules and a core. It is currently in a very rough state and fairly 
+brittle, but works beautifully. It is unfortunately also 
+Linux-dependent, since it uses inotify for file monitoring and I haven't 
+got a OS X (FSEvents) or Windows (Win32 API) machine to develop on at 
+the moment.
+
+The responsibilities of the core:
+ - monitor file changes
+ - run test suite (as defined in input)
+ - pass results to output
+
+Input modules are interfaces to a particular test engine and 
+setup (rspec, JUnit, cxxtest etc.) which defines a few properties:
+ - extensions of source files to be watched, e.g. [".c", ".cpp", ".h"] 
+ - files to be ignored by the file alteration monitor
+ - a block that, given the exit code and output (stdout, stderr) from 
+the test engine, determines whether the test passed or failed (often 
+determined by looking at the exit code alone)
+ - two blocks that take as input stdout and stderr from the test engine 
+and formats convenient output messages
+ - the sequence of commands for invoking the test engine
+
+Output modules are interfaces to presentation of test results 
+(e.g. libnotify notification or a HTML report). An output module 
+defines:
+ - a block that is executed when the test suite passes
+ - a block that is executed when the test suite fails
+
+Input and output modules can easily be added to make testpilot support 
+addition test engines or presentation methods. Pre-packed modules:
+
+Input: 
+ - cxxtest
+ - JUnit
+ - rspec
+
+Output
+ - libnotify
+ - Mumbles
+ - Audio (through mpg123)
+
+EXAMPLE USAGE
+--------------
+
+    testpilot --input junit --output libnotify MyTestSuite.java
+
+It is also possible to use several output modules at once:
+
+    testpilot --input cxxtest --output mumbles,audio MyTestSuite.h 
+
+The latter example will provide both visual and audible feedback.

@@ -1,0 +1,29 @@
+#!/usr/bin/ruby
+require 'optparse'
+require 'testpilot.rb'
+
+options = {}
+
+OptionParser.new do |opts|
+  opts.banner = "usage: testpilot [options]"
+  opts.on("-i IM", "--input IM", "Specify input module (cxxtest, junit etc.). ",
+          "Must correspond to a file inputs/IM.rb") do |input|
+                                         
+    options[:input] = input
+  end
+  
+  opts.on("-o OM1[,OM2,...]", "--output OM1[,OM2,...]", Array, "Specify output module(s) (growl, audio etc.).", 
+          "Must correspond to files outputs/OM1.rb, outputs/OM2.rb etc.") do |output|
+                                         
+    options[:output] = output
+  end
+  
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+  
+end.parse!
+
+Testpilot.new(ARGV[0], options[:input], options[:output]).run
+  
