@@ -7,10 +7,15 @@ class Testpilot
   PROPERTIES = Hash.new
   ACTIONS = Hash.new { |k,v| k[v] = [] }
   attr_accessor :testsuite
+  
 
   def initialize(testsuite, input, outputs)
   
+    require 'console.rb'
+  
     $testsuite = testsuite
+    @input = input
+    @outputs = outputs
     
     begin
       require "inputs/#{input}.rb"
@@ -36,12 +41,14 @@ class Testpilot
       i.each_event { |e|
         if property(:extensions).empty? || property(:extensions).include?(File.extname(e.name)) and
           !property(:exclude).include?(e.name)
+          puts e.name
           run_tests
         end 
       }
      
     }
   end
+ 
   
   def self.add_property(name, &block)
     PROPERTIES[name] = block
@@ -50,46 +57,50 @@ class Testpilot
   def self.add_action(name, &block)
     ACTIONS[name] << block
   end
-
+  
+  
   def run_tests
     
     cmd = property(:command)
     last = cmd.pop
-    err = nil
-      
-    cmd.each { |line|
-      status = Open4::popen4(line) { |pid, stdin, stdout, stderr|
+    
+    begin
+      cmd.each { |line|
+        status = Open4::popen4(line) { |pid, stdin, stdout, stderr|
+          yield stderr
+        }
+        
         err = stderr.read.strip.gsub(/"/,'\"')
+        
+        if status.exitstatus != 0
+          action :fail, err
+          return
+        end
+      }
+    
+      status = Open4.popen4(last) { |pid, stdin, stdout, stderr|
+        yield stdout, stderr
       }
       
-      if status.exitstatus != 0
-        action :fail, err
-        puts err
-        return
-      end
-    }
-    
-    out = nil
-    err = nil
-
-    status = Open4::popen4(last) { |pid, stdin, stdout, stderr|
       out = stdout.read.strip
       err = stderr.read.strip
-      puts out
-      puts err
-    }
     
-    if property(:passed, status.exitstatus, out, err)
-      action :pass, property(:pass_message, out, err).gsub(/"/,'\"')
-    else
-      action :fail, property(:fail_message, out, err).gsub(/"/,'\"')
+      if property(:passed, status.exitstatus, out, err)
+        action :pass, property(:pass_message, out, err).gsub(/"/,'\"')
+      else
+        action :fail, property(:fail_message, out, err).gsub(/"/,'\"')
+      end
+    
+    rescue Errno::ENOENT => e
+      action :fail, "Error running '#{@input}': " + e.to_s
     end
-
-  end
+  end 
+  
   
   def property(name, *args)
     PROPERTIES[name].call(args)
   end
+  
   
   def action(name, *args)
     threads = []
@@ -102,6 +113,7 @@ class Testpilot
     
     threads.each { |t| t.join }
   end
+  
   
   def run
     @t.join
