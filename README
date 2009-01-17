@@ -6,10 +6,9 @@ Introduction
 testpilot is a simple and modular tool for accelerating Test-driven 
 Development. It is highly modular, consisting of a input modules, output 
 modules and a core. It is currently in a very rough state and fairly 
-brittle, but works beautifully. It is unfortunately also 
-Linux-dependent, since it uses inotify for file monitoring and I haven't 
-got a OS X (FSEvents) or Windows (Win32 API) machine to develop on at 
-the moment.
+brittle, but works beautifully. Currently it is Linux-dependent, 
+since it uses inotify for file monitoring and I haven't got a OS X (FSEvents) 
+or Windows (Win32 API) machine to develop on at the moment.
 
 The responsibilities of the core:
  - monitor file changes
@@ -46,7 +45,12 @@ Output
  - Mumbles
  - Audio (through mpg123)
 
-EXAMPLE USAGE
+Dependencies
+-------------
+ * ruby-inotify (http://raa.ruby-lang.org/project/ruby-inotify)
+ * open4 (http://raa.ruby-lang.org/project/open4)
+
+Example usage
 --------------
 
     testpilot --input junit --output libnotify MyTestSuite.java
@@ -55,4 +59,15 @@ It is also possible to use several output modules at once:
 
     testpilot --input cxxtest --output mumbles,audio MyTestSuite.h 
 
-The latter example will provide both visual and audible feedback.
+The latter example will provide both visual and audible feedback. 
+
+Run
+  
+    testpilot --help
+    
+to view a list of all command-line options.
+  
+Todo
+-----
+ * Implement an interface to FSEvents (OS X) and the Win32 API file monitoring.
+ * Allow for user-specific configuration, inputs, outputs and resources in home directory.
