@@ -4,15 +4,23 @@ require 'testpilot.rb'
 
 options = {}
 
-OptionParser.new do |opts|
-  opts.banner = "usage: testpilot [options]"
-  opts.on("-i IM", "--input IM", "Specify input module (cxxtest, junit etc.). ",
+parser = OptionParser.new do |opts|
+  opts.banner = <<X
+
+Testpilot v0.1 by Martin Häger <mtah@thesmilingpenguin.com>
+usage: testpilot [OPTIONS] path_to_testsuite
+  
+X
+
+  opts.separator "OPTIONS:"
+  
+  opts.on("-i", "--input IM", "Specify input module (cxxtest, junit etc.). ",
           "Must correspond to a file inputs/IM.rb") do |input|
                                          
     options[:input] = input
   end
   
-  opts.on("-o OM1[,OM2,...]", "--output OM1[,OM2,...]", Array, "Specify output module(s) (growl, audio etc.).", 
+  opts.on("-o", "--output OM1[,OM2,...]", Array, "Specify output module(s) (libnotify, audio etc.).", 
           "Must correspond to files outputs/OM1.rb, outputs/OM2.rb etc.") do |output|
                                          
     options[:output] = output
@@ -22,8 +30,23 @@ OptionParser.new do |opts|
     puts opts
     exit
   end
-  
-end.parse!
+end
 
-Testpilot.new(ARGV[0], options[:input], options[:output]).run
+begin
+  
+  if ARGV.length == 5
+    parser.parse!(ARGV)
+    Testpilot.new(ARGV[0], options[:input], options[:output]).run
+  else
+    raise OptionParser::ParseError, "Invalid number of arguments"
+  end
+  
+rescue OptionParser::ParseError => error
+  puts error
+  puts parser
+  exit 1
+end
+    
+
+
   
